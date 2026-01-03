@@ -76,17 +76,92 @@ Example:
 - The scope and complexity are appropriate for a student final project
 - Includes presentation materials (PDF files) alongside code
 
+## Specific Sections Most Likely AI-Generated
+
+### 🤖 **HIGHEST AI Likelihood (95%+)**
+
+#### 1. **Data Aggregation Section (Lines 63-78)**
+```python
+# Aggregate Bed Capacity Data to Weekly Frequency
+# We use a dictionary to tell pandas how to aggregate each column:
+# - Numbers: Calculate the MEAN (average capacity for the week)
+# - Text: Take the FIRST value (since Network/Region does not change day-to-day)
+agg_rules = {
+    "Total Staffed Acute Care Beds": "mean",
+    ...
+    "Facility Network": "first",       # <--- THIS SAVES THE COLUMN
+    "NY Forward Region": "first"       # <--- THIS SAVES THE COLUMN
+}
+```
+**Why:** The bullet-point tutorial comments and `# <--- THIS SAVES THE COLUMN` markers are quintessential AI-generated explanatory code.
+
+#### 2. **Missing Value Handling Section (Lines 89-133)**
+**Why:** 
+- Extremely comprehensive approach handling multiple placeholder types
+- Uses all pandas best practices (`errors="coerce"`, strategic fillna)
+- Educational comments explaining each decision
+- This defensive programming pattern is typical of AI responses to "clean my data properly"
+
+#### 3. **Visualization Blocks (Lines 163-189)**
+**Why:** Four nearly identical code blocks with only variable names changed - classic AI pattern replication:
+```python
+plt.figure(figsize=(16, 6))
+sns.barplot(x="As of Date", y="[VARIABLE]", data=df_combined, errorbar=None)
+plt.title("Average Weekly [TITLE]")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+```
+
+#### 4. **Machine Learning Section (Lines 236-281)**
+**Why:**
+- Complete textbook ML workflow (split → train → predict → evaluate → visualize)
+- Verbose explanatory comments like `# Split Data into Training and Testing Sets (80% Train, 20% Test)`
+- Print statements formatted for teaching: `print("--- Linear Regression Model Results ---")`
+- The "perfect prediction line" comment on line 277
+
+### 🤖 **HIGH AI Likelihood (80-90%)**
+
+#### 5. **acronym_fixing() Function (Lines 10-22)**
+**Why:** Well-abstracted but over-engineered for this specific use case. The function is more general-purpose than needed, suggesting AI generation from a prompt like "create a function to fix acronyms."
+
+#### 6. **SQLite Integration (Lines 200-234)**
+**Why:**
+- Complete DB workflow with educational comments
+- Sample query demonstration that's pedagogically structured
+- Uses `display()` for teaching purposes
+
+### 🤔 **MODERATE AI Likelihood (50-70%)**
+
+#### 7. **Data Loading & Initial Cleaning (Lines 26-62)**
+**Why:** Mostly straightforward, but the consistent use of `.title()` method and regex pattern `r"\s*\(\d+\)"` suggests AI assistance. Some human touch in variable naming.
+
+### ✍️ **LOWER AI Likelihood (30-50%)**
+
+#### 8. **Import Statements (Lines 1-8, 24)**
+**Why:** The out-of-order import on line 24 (`from IPython.display import display`) suggests human editing/addition. AI typically groups all imports at the top.
+
+#### 9. **Path Setup (Lines 26-31)**
+**Why:** Uses `pathlib.Path` (good practice) but filenames are project-specific, suggesting some human direction.
+
 ## Conclusion
 
 **HIGH LIKELIHOOD: This code was AI-GENERATED or heavily AI-ASSISTED**
 
 ### Confidence Level: **85-90%**
 
+### Most Telling Evidence:
+The **data aggregation comments** (lines 63-76) with tutorial-style explanations and the **`# <--- THIS SAVES THE COLUMN`** markers are the smoking gun. This exact pattern of adding arrows and capital letters to draw attention to specific lines is a hallmark of AI explaining code.
+
 ### Reasoning:
 1. The consistency, completeness, and pedagogical style of comments are hallmarks of AI code generation tools (like ChatGPT, GitHub Copilot, or Claude)
 2. The code demonstrates best practices throughout without the typical evolutionary artifacts of human development
 3. The comprehensive coverage of multiple topics (data cleaning, visualization, SQL, ML) in a polished format is more consistent with AI prompts like "create a complete data science project analyzing hospital COVID data"
-4. The specific comment style with educational markers (`# <--- THIS SAVES THE COLUMN`) is very typical of AI-generated explanatory code
+4. Pattern replication in visualization blocks is classic AI behavior
+
+### Likely Prompt Used:
+Based on the structure, this appears to be from a prompt similar to:
+> "Create a Python data science project that analyzes New York State hospital bed capacity and COVID-19 data. Include data cleaning, visualization, SQL storage, and machine learning predictions. Add detailed comments explaining each step for a beginner."
 
 ### Important Notes:
 - This doesn't diminish the value of the project - using AI tools effectively is a valuable skill
