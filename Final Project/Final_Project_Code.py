@@ -231,6 +231,41 @@ display(sql_result)
 # Closing the connection when done
 conn.close()
 
+# Feature Engineering: Calculate Occupancy Rate
+df_combined["Acute Care Occupancy Rate"] = (
+    df_combined["Total Staffed Acute Care Beds Occupied"] /
+    df_combined["Total Staffed Acute Care Beds"]
+).fillna(0)
+
+plt.figure(figsize=(18, 6))
+
+# Plot 1: Correlation Heatmap
+plt.subplot(1, 2, 1)
+correlation_matrix = df_combined[[
+    "Total Staffed Acute Care Beds Available",
+    "Total Staffed ICU Beds Currently Available",
+    "Acute Care Occupancy Rate",
+    "Total New COVID-19 Admissions Reported",
+    "COVID-19 Patients Expired"
+]].corr()
+sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+plt.title("Correlation Heatmap: Capacity vs. Outcomes")
+
+# Plot 2: Scatter Plot (Occupancy Rate vs. Fatalities)
+plt.subplot(1, 2, 2)
+sns.scatterplot(
+    data=df_combined,
+    x="Acute Care Occupancy Rate",
+    y="COVID-19 Patients Expired",
+    alpha=0.5
+)
+plt.title("Scatter Plot: Occupancy Rate vs. Fatalities")
+plt.xlabel("Acute Care Occupancy Rate (0.0 - 1.0)")
+plt.ylabel("Weekly COVID-19 Fatalities")
+
+plt.tight_layout()
+plt.show()
+
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
@@ -247,7 +282,7 @@ target = "COVID-19 Patients Expired"
 X = df_combined[features]
 y = df_combined[target]
 
-# Spliting Data into Training and Testing Sets (80% Train, 20% Test)
+# Splitting Data into Training and Testing Sets (80% Train, 20% Test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 # Initializing and Training the Model
