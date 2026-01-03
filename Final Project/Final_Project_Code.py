@@ -1,3 +1,5 @@
+# Groupmember 1 Responsibilities
+
 import pandas as pd
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -23,14 +25,14 @@ def acronym_fixing(data_frame_column):
 
 from IPython.display import display
 
-# Set base paths
+# Setting the base paths
 BASE = Path.cwd()
 DATA = BASE / "data"
 
 file_one_path = DATA / "New_York_State_Statewide_Hospital_Bed_Capacity.csv"
 file_two_path = DATA / "New_York_State_Statewide_Weekly_COVID-19_Hospitalizations_and_Fatalities.csv"
 
-# Read CSV files into DataFrames
+# Reading the CSV files into DataFrames
 df_hospital_bed_capacity = pd.read_csv(file_one_path)
 df_weekly_covid19_hospitalizations_and_fatalities = pd.read_csv(file_two_path)
 
@@ -43,7 +45,7 @@ display(df_hospital_bed_capacity.head())
 print("\nWeekly COVID-19 Hospitalizations and Fatalities (first 5 rows):")
 display(df_weekly_covid19_hospitalizations_and_fatalities.head())
 
-# Clean text columns in Bed Capacity dataset
+# Cleaning text columns in the Bed Capacity DataFrame
 df_hospital_bed_capacity["Facility Name"] = df_hospital_bed_capacity["Facility Name"].str.title()
 df_hospital_bed_capacity["Facility Name"] = df_hospital_bed_capacity["Facility Name"].str.replace(r"\s*\(\d+\)", "", regex=True)
 df_hospital_bed_capacity["DOH Region"] = df_hospital_bed_capacity["DOH Region"].str.title()
@@ -51,19 +53,16 @@ df_hospital_bed_capacity["Facility County"] = df_hospital_bed_capacity["Facility
 df_hospital_bed_capacity["Facility Network"] = df_hospital_bed_capacity["Facility Network"].str.title()
 df_hospital_bed_capacity["NY Forward Region"] = df_hospital_bed_capacity["NY Forward Region"].str.title()
 
-# Clean text columns in COVID-19 dataset
+# Cleaning text columns in the COVID-19 DataFrame
 df_weekly_covid19_hospitalizations_and_fatalities["Facility Name"] = (df_weekly_covid19_hospitalizations_and_fatalities["Facility Name"].str.title())
 df_weekly_covid19_hospitalizations_and_fatalities["DOH Region"] = (df_weekly_covid19_hospitalizations_and_fatalities["DOH Region"].str.title())
 df_weekly_covid19_hospitalizations_and_fatalities["Facility County"] = (df_weekly_covid19_hospitalizations_and_fatalities["Facility County"].str.title())
 
-# Convert 'As of Date' to datetime objects immediately
+# Converting the "As of Date" column to Python datetime objects
 df_hospital_bed_capacity["As of Date"] = pd.to_datetime(df_hospital_bed_capacity["As of Date"])
 df_weekly_covid19_hospitalizations_and_fatalities["As of Date"] = pd.to_datetime(df_weekly_covid19_hospitalizations_and_fatalities["As of Date"])
 
-# Aggregate Bed Capacity Data to Weekly Frequency
-# We use a dictionary to tell pandas how to aggregate each column:
-# - Numbers: Calculate the MEAN (average capacity for the week)
-# - Text: Take the FIRST value (since Network/Region does not change day-to-day)
+# Aggregating Bed Capacity Data to Weekly Frequency
 agg_rules = {
     "Total Staffed Acute Care Beds": "mean",
     "Total Staffed Acute Care Beds Occupied": "mean",
@@ -71,22 +70,21 @@ agg_rules = {
     "Total Staffed ICU Beds": "mean",
     "Total Staffed ICU Beds Currently Occupied": "mean",
     "Total Staffed ICU Beds Currently Available": "mean",
-    "Facility Network": "first",       # <--- THIS SAVES THE COLUMN
-    "NY Forward Region": "first"       # <--- THIS SAVES THE COLUMN
+    "Facility Network": "first",
+    "NY Forward Region": "first"
 }
 
 bed_capacity_weekly = df_hospital_bed_capacity.groupby(["Facility PFI", pd.Grouper(key="As of Date", freq="W-SAT")]).agg(agg_rules).reset_index()
 
-# Merge the Aggregated Weekly Bed Data with the Weekly COVID Data
-# Note: 'Facility Name', 'DOH Region', and 'Facility County' will come from the COVID-19 dataset
+# Merging the Aggregated Weekly Bed Data with the Weekly COVID Data
 df_combined = pd.merge(bed_capacity_weekly, df_weekly_covid19_hospitalizations_and_fatalities, how="inner", on=["Facility PFI", "As of Date"])
 
-# Preview
+# Previewing
 print(f"Combined DataFrame Shape: {df_combined.shape}")
 print("Columns:", df_combined.columns.tolist())
 df_combined.head()
 
-# Replace string placeholders for missing values with NaN (including for dates)
+# Replacing string placeholders for missing values with NaN (including for dates)
 missing_placeholders = ["null", "N/A", ""]
 cols_to_clean = [
     "As of Date",
@@ -100,21 +98,21 @@ cols_to_clean = [
 for col in cols_to_clean:
     df_combined[col] = df_combined[col].replace(missing_placeholders, np.nan)
 
-# For categorical text columns, use "Unknown" for missing values
+# Using "Unknown" for missing values from textual columns
 cat_cols = ["Facility Name", "DOH Region", "Facility County", "Facility Network", "NY Forward Region"]
 for col in cat_cols:
     df_combined[col] = df_combined[col].fillna("Unknown")
 
-# For dates: keep as real dates, leave missing as NaT
+# Keeping real dates, leaving missing values as NaT
 df_combined["As of Date"] = pd.to_datetime(df_combined["As of Date"], errors="coerce")
 df_combined = df_combined.sort_values(by="As of Date", ascending=True)
 
-# Fix capitalization and acronyms AFTER handling missing values
+# Fixing capitalization and acronyms after handling missing values
 df_combined["Facility Name"] = df_combined["Facility Name"].apply(acronym_fixing)
 df_combined["Facility Name"] = df_combined["Facility Name"].str.replace(r"'S", r"'s", regex=True)
 df_combined["Facility Network"] = df_combined["Facility Network"].apply(acronym_fixing)
 
-# Fill numeric NaNs with column means
+# Replacing numerical columns with NaNs with the means of their respective columns
 num_cols = [
     "Total Staffed Acute Care Beds",
     "Total Staffed Acute Care Beds Occupied",
@@ -131,7 +129,7 @@ for col in num_cols:
     df_combined[col] = df_combined[col].fillna(df_combined[col].mean())
     df_combined[col] = df_combined[col].round().astype(int)
 
-# Only remove rows where HOSPITAL CAPACITY is invalid (0 beds).
+# Only removing rows where HOSPITAL CAPACITY is invalid (0 beds)
 delete_rows_invalid_capacity = (
     (df_combined["Total Staffed Acute Care Beds"] == 0) |
     (df_combined["Total Staffed ICU Beds"] == 0)
@@ -139,16 +137,18 @@ delete_rows_invalid_capacity = (
 
 df_combined = df_combined[~delete_rows_invalid_capacity].reset_index(drop=True)
 
-# Sort by date
+# Sorting by date
 df_combined = df_combined.sort_values(by="As of Date", ascending=True)
 
 df_combined.head()
 
+# Graphing data as a time-series plot
 plt.figure(figsize=(15, 8))
 plt.title("Time-Series of Bed Availability and COVID-19 Outcomes in NYS")
 plt.xlabel("As of Date")
 plt.ylabel("Count")
 
+# Graphing data as a collection of histograms
 plt.plot(df_combined["As of Date"], df_combined["Total Staffed Acute Care Beds Available"], label="Acute Care Beds Available")
 plt.plot(df_combined["As of Date"], df_combined["Total Staffed ICU Beds Currently Available"], label="ICU Beds Available")
 plt.plot(df_combined["As of Date"], df_combined["Total New COVID-19 Admissions Reported"], label="New COVID-19 Admissions")
@@ -188,7 +188,7 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.show()
 
-# Define the output directory to be the 'data' folder directly
+# Defining the output directory to be the "data" folder directly
 OUTPUT_DIR = Path.cwd() / "data"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -197,20 +197,18 @@ df_combined.to_csv(output_path, index=False)
 
 print(f"Saved combined, cleaned DataFrame to: {output_path}")
 
+# Groupmember 2 Responsibilities
+
 import sqlite3
 
-# Create a connection to a new SQLite database
-# This creates a file 'hospital_covid_project.db' in your current folder
+# Creating a connection to a new SQLite database
 conn = sqlite3.connect("hospital_covid_project.db")
 
-# Load our clean dataframe into SQL
-# We create a table named 'weekly_data'
+# Loading our clean dataframe into SQL
 df_combined.to_sql("weekly_data", conn, if_exists="replace", index=False)
 print("Data successfully loaded into SQLite table 'weekly_data'.")
 
-# Verify with a SQL Query
-# We will use SQL to select data for our upcoming analysis
-# (Example: Fetching beds and fatalities where fatalities > 0)
+# Verifying with a SQL Query
 query = """
 SELECT
     "As of Date",
@@ -225,20 +223,19 @@ ORDER BY "COVID-19 Patients Expired" DESC
 LIMIT 5;
 """
 
-# Execute the query and display the result
+# Executing the query and display the result
 print("\nSample SQL Query Result (Top 5 Facilities with Fatalities):")
 sql_result = pd.read_sql(query, conn)
 display(sql_result)
 
-# Close the connection when done
+# Closing the connection when done
 conn.close()
 
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 
-# Define Features (X) and Target (y)
-# We want to see if Bed Availability predicts Fatalities
+# Defining Features (X) and Target (y)
 features = [
     "Total Staffed Acute Care Beds Available",
     "Total Staffed ICU Beds Currently Available",
@@ -250,17 +247,17 @@ target = "COVID-19 Patients Expired"
 X = df_combined[features]
 y = df_combined[target]
 
-# Split Data into Training and Testing Sets (80% Train, 20% Test)
+# Spliting Data into Training and Testing Sets (80% Train, 20% Test)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Initialize and Train the Model
+# Initializing and Training the Model
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-# Make Predictions
+# Making Predictions
 y_pred = model.predict(X_test)
 
-# Evaluate the Model
+# Evaluating the Model
 rmse = np.sqrt(mean_squared_error(y_test, y_pred))
 r2 = r2_score(y_test, y_pred)
 
@@ -271,7 +268,7 @@ print("\nFeature Coefficients (Impact on Fatalities):")
 for feature, coef in zip(features, model.coef_):
     print(f" - {feature}: {coef:.4f}")
 
-# Visualize Predictions vs Actuals
+# Visualizing Predictions vs Actuals
 plt.figure(figsize=(10, 6))
 plt.scatter(y_test, y_pred, alpha=0.5)
 plt.plot([y.min(), y.max()], [y.min(), y.max()], 'r--', lw=2) # The "Perfect Prediction" line
