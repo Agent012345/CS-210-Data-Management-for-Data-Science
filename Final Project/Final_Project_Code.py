@@ -148,7 +148,6 @@ plt.title("Time-Series of Bed Availability and COVID-19 Outcomes in NYS")
 plt.xlabel("As of Date")
 plt.ylabel("Count")
 
-# Graphing data as a collection of bar graphs
 plt.plot(df_combined["As of Date"], df_combined["Total Staffed Acute Care Beds Available"], label="Acute Care Beds Available")
 plt.plot(df_combined["As of Date"], df_combined["Total Staffed ICU Beds Currently Available"], label="ICU Beds Available")
 plt.plot(df_combined["As of Date"], df_combined["Total New COVID-19 Admissions Reported"], label="New COVID-19 Admissions")
@@ -160,6 +159,7 @@ plt.tight_layout()
 plt.ylim(0, 350)
 plt.show()
 
+# Graphing data as a collection of bar graphs
 plt.figure(figsize=(16, 6))
 sns.barplot(x="As of Date", y="Total Staffed Acute Care Beds Available", data=df_combined, errorbar=None)
 plt.title("Average Weekly Total Staffed Acute Care Beds Available")
