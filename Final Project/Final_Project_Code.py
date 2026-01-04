@@ -1,4 +1,4 @@
-# Groupmember 1 Responsibilities
+# Group Member 1 Responsibilities
 
 import pandas as pd
 import matplotlib.dates as mdates
@@ -197,7 +197,7 @@ df_combined.to_csv(output_path, index=False)
 
 print(f"Saved combined, cleaned DataFrame to: {output_path}")
 
-# Groupmember 2 Responsibilities
+# Group Member 2 Responsibilities
 
 import sqlite3
 
